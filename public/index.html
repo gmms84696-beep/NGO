@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NGO Donation Portal</title>
+<meta name="description" content="Donate to verified causes, become a member and download your receipt.">
+<meta name="theme-color" content="#0E3B3A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: calm paper background, deep teal ink, marigold used only for the main action. */
+:root {
+  --ink: #0e3b3a;
+  --ink-2: #16504e;
+  --gold: #f4a300;
+  --gold-d: #d98f00;
+  --leaf: #2f7d4f;
+  --paper: #f6f7f3;
+  --card: #ffffff;
+  --line: #dde3da;
+  --text: #1c2b29;
+  --muted: #5b6b67;
+  --danger: #b3261e;
+  --ok: #1e7a45;
+  --warn: #8a5a00;
+  --ok-bg: #e3f4ea;
+  --warn-bg: #fff2d6;
+  --bad-bg: #fde7e5;
+  --radius: 14px;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--paper); color: var(--text);
+  font: 16px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+img, svg { max-width: 100%; }
+a { color: var(--ink-2); }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0 0 .5em; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 700; letter-spacing: -.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0 0 1em; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+.muted { color: var(--muted); }
+.small { font-size: .875rem; }
+.eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--leaf); margin-bottom: .6rem; }
+.loading { padding: 4rem 0; text-align: center; color: var(--muted); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+
+/* header */
+.site-header { position: sticky; top: 0; z-index: 20; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); background: var(--ink); color: #fff; }
+.nav { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 1rem; min-height: 64px; flex-wrap: wrap; padding: .5rem 0; }
+.brand { display: flex; align-items: center; gap: .65rem; color: #fff; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 1.15rem; margin-right: auto; min-width: 0; }
+.brand img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 2px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 10px; background: var(--gold); color: var(--ink); display: grid; place-items: center; flex: none; }
+.brand-mark svg { width: 24px; height: 24px; }
+.brand span { overflow-wrap: anywhere; }
+.nav-links { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
+.nav-links a, .nav-links button.linklike { color: #e6f0ee; text-decoration: none; padding: .5rem .8rem; border-radius: 999px; font-weight: 600; font-size: .95rem; background: none; border: 0; cursor: pointer; font-family: inherit; }
+.nav-links a:hover, .nav-links button.linklike:hover, .nav-links a.on { background: rgba(255,255,255,.12); color: #fff; }
+.nav-links a.btn-gold { background: var(--gold); color: #2a1c00; }
+.nav-links a.btn-gold:hover { background: var(--gold-d); color: #2a1c00; }
+.nav-toggle { display: none; background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 10px; padding: .5rem .8rem; font: inherit; font-weight: 600; cursor: pointer; }
+@media (max-width: 760px) {
+  .nav-toggle { display: block; }
+  .nav-links { display: none; width: 100%; flex-direction: column; align-items: stretch; padding-bottom: .5rem; }
+  .nav-links.open { display: flex; }
+  .nav-links a, .nav-links button.linklike { text-align: left; }
+}
+
+/* buttons & forms */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border: 2px solid transparent; border-radius: 999px; padding: .7rem 1.35rem; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; transition: transform .08s, background .15s; min-height: 46px; }
+.btn:active { transform: translateY(1px); }
+.btn-gold { background: var(--gold); color: #2a1c00; }
+.btn-gold:hover { background: var(--gold-d); }
+.btn-ink { background: var(--ink); color: #fff; }
+.btn-ink:hover { background: var(--ink-2); }
+.btn-line { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn-line:hover { background: var(--ink); color: #fff; }
+.btn-sm { padding: .35rem .85rem; min-height: 36px; font-size: .875rem; }
+.btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn[disabled] { opacity: .55; cursor: not-allowed; }
+label { display: block; font-weight: 600; font-size: .92rem; margin-bottom: .3rem; }
+input, select, textarea { width: 100%; font: inherit; color: var(--text); background: #fff; border: 1.5px solid #c5cfc9; border-radius: 10px; padding: .65rem .8rem; min-height: 46px; }
+textarea { min-height: 90px; resize: vertical; }
+input[type=checkbox], input[type=radio] { width: auto; min-height: 0; accent-color: var(--ink); }
+input:focus, select:focus, textarea:focus { outline: 3px solid rgba(244,163,0,.45); border-color: var(--ink); }
+.field { margin-bottom: 1rem; }
+.hint { font-size: .85rem; color: var(--muted); margin-top: .3rem; }
+.row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.check { display: flex; gap: .6rem; align-items: flex-start; font-weight: 500; }
+.check input { margin-top: .35rem; }
+.alert { padding: .8rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-weight: 500; }
+.alert.err { background: var(--bad-bg); color: var(--danger); }
+.alert.ok { background: var(--ok-bg); color: var(--ok); }
+.alert.info { background: var(--warn-bg); color: var(--warn); }
+
+/* surfaces */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem; min-width: 0; }
+.section { padding: 3rem 0; }
+.section-head { max-width: 640px; margin-bottom: 1.75rem; }
+
+/* hero */
+.hero { background: var(--ink); color: #fff; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 3.5rem max(16px, env(safe-area-inset-right, 0px)) 3.5rem max(16px, env(safe-area-inset-left, 0px)); overflow: hidden; }
+.hero-in { max-width: 1120px; margin: 0 auto; display: grid; gap: 2.5rem; grid-template-columns: 1.1fr .9fr; align-items: center; }
+.hero h1 { color: #fff; }
+.hero p.lead { font-size: 1.15rem; color: #cfe3df; max-width: 52ch; }
+.hero .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+.hero .btn-line { color: #fff; border-color: rgba(255,255,255,.6); }
+.hero .btn-line:hover { background: #fff; color: var(--ink); }
+.hero-art { background: var(--ink-2); border-radius: 22px; padding: 1rem; }
+.hero-art svg { width: 100%; height: auto; display: block; border-radius: 14px; }
+@media (max-width: 820px) { .hero-in { grid-template-columns: 1fr; } .hero { padding-top: 2.5rem; padding-bottom: 2.5rem; } }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: -2rem; position: relative; }
+.stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.25rem; box-shadow: 0 8px 24px rgba(14,59,58,.08); }
+.stat b { display: block; font-family: var(--display); font-size: 1.9rem; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .9rem; }
+
+/* causes */
+.grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.cause { display: flex; flex-direction: column; gap: .6rem; text-decoration: none; color: inherit; padding: 0; overflow: hidden; transition: box-shadow .15s, transform .15s; }
+.cause:hover { box-shadow: 0 10px 28px rgba(14,59,58,.12); transform: translateY(-2px); }
+.cause-top { height: 130px; background: #e8efe9; color: var(--ink); display: grid; place-items: center; background-size: cover; background-position: center; }
+.cause-top svg { width: 64px; height: 64px; }
+.cause-body { padding: 0 1.2rem 1.2rem; display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+.cause-body p { color: var(--muted); font-size: .94rem; margin: 0; flex: 1; }
+.cause-foot { display: flex; justify-content: space-between; align-items: center; margin-top: .5rem; font-weight: 700; font-size: .9rem; color: var(--ink-2); }
+.pill { display: inline-block; padding: .15rem .65rem; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+.pill.approved { background: var(--ok-bg); color: var(--ok); }
+.pill.pending { background: var(--warn-bg); color: var(--warn); }
+.pill.rejected { background: var(--bad-bg); color: var(--danger); }
+
+.steps { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); counter-reset: s; }
+.step { position: relative; padding-left: 3.2rem; }
+.step::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 0; width: 2.3rem; height: 2.3rem; border-radius: 50%; background: var(--gold); color: #2a1c00; font-weight: 800; display: grid; place-items: center; font-family: var(--display); }
+
+.quote-band { background: var(--ink); color: #fff; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 3rem max(16px, env(safe-area-inset-right, 0px)) 3rem max(16px, env(safe-area-inset-left, 0px)); text-align: center; }
+.quote-band blockquote { margin: 0 auto; max-width: 760px; font-family: var(--display); font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.3; font-weight: 700; }
+
+/* donate layout */
+.donate-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 1.5rem; align-items: start; }
+@media (max-width: 880px) { .donate-grid { grid-template-columns: 1fr; } }
+.pick { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.pick label { margin: 0; cursor: pointer; }
+.pick input { position: absolute; opacity: 0; pointer-events: none; }
+.pick .opt { display: flex; align-items: center; gap: .65rem; border: 1.5px solid var(--line); border-radius: 12px; padding: .65rem .8rem; background: #fff; font-weight: 600; }
+.pick .opt svg { width: 28px; height: 28px; flex: none; color: var(--ink-2); }
+.pick input:checked + .opt { border-color: var(--ink); background: #eaf2ee; box-shadow: inset 0 0 0 1px var(--ink); }
+.pick input:focus-visible + .opt { outline: 3px solid var(--gold); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+.chip { border: 1.5px solid #c5cfc9; background: #fff; border-radius: 999px; padding: .4rem 1rem; font: inherit; font-weight: 700; cursor: pointer; min-height: 40px; font-variant-numeric: tabular-nums; }
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.qr-card { text-align: center; }
+.qr-box { background: #fff; border: 2px dashed var(--line); border-radius: 14px; padding: .8rem; margin: .5rem auto 1rem; max-width: 300px; }
+.qr-box img { display: block; width: 100%; height: auto; border-radius: 6px; }
+.qr-empty { padding: 2rem 1rem; color: var(--muted); font-size: .92rem; }
+.upi { display: flex; gap: .5rem; align-items: center; justify-content: center; flex-wrap: wrap; font-weight: 700; }
+.upi code { background: #eef3ee; padding: .25rem .6rem; border-radius: 8px; overflow-wrap: anywhere; }
+.thanks { text-align: center; max-width: 640px; margin: 2rem auto; }
+.thanks .badge { width: 84px; height: 84px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); display: grid; place-items: center; margin: 0 auto 1rem; }
+.thanks .badge svg { width: 44px; height: 44px; }
+.thanks blockquote { font-family: var(--display); font-size: 1.3rem; font-weight: 700; color: var(--ink); margin: 1.25rem 0; }
+
+/* membership */
+.plans { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.plan { display: flex; flex-direction: column; gap: .5rem; }
+.plan .price { font-family: var(--display); font-size: 2.2rem; font-weight: 800; color: var(--ink); line-height: 1; }
+.plan ul { padding-left: 1.1rem; margin: .5rem 0 1rem; flex: 1; color: var(--muted); }
+.plan.best { border: 2px solid var(--ink); }
+
+/* tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: .65rem .85rem; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: #eef3ee; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.actions-cell { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+/* admin */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid var(--line); padding-bottom: .75rem; }
+.tabs a { padding: .5rem 1rem; border-radius: 999px; text-decoration: none; font-weight: 700; color: var(--ink-2); }
+.tabs a.on { background: var(--ink); color: #fff; }
+.tabs a:hover:not(.on) { background: #e3ebe5; }
+.bars { display: grid; gap: .6rem; }
+.bar-row { display: grid; grid-template-columns: minmax(90px, 200px) 1fr auto; gap: .75rem; align-items: center; font-size: .9rem; }
+.bar-track { background: #e6ede7; border-radius: 99px; height: 14px; overflow: hidden; }
+.bar-fill { background: var(--ink); height: 100%; border-radius: 99px; min-width: 2px; }
+.daily { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-top: 1rem; }
+.daily .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; font-size: .68rem; color: var(--muted); gap: 4px; }
+.daily .col i { display: block; width: 100%; background: var(--gold); border-radius: 5px 5px 0 0; min-height: 2px; }
+.edit-card { margin-bottom: 1rem; }
+.edit-card summary { cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; gap: 1rem; align-items: center; list-style: none; }
+.edit-card summary::-webkit-details-marker { display: none; }
+.edit-card[open] summary { margin-bottom: 1rem; }
+.preview { max-width: 180px; max-height: 180px; border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 4px; display: block; margin-bottom: .5rem; }
+.toolbar { display: flex; gap: .75rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
+.toolbar > div { flex: 1 1 160px; min-width: 0; }
+
+/* receipt */
+.receipt { background: #fff; border: 2px solid var(--ink); border-radius: 6px; max-width: 760px; margin: 1.5rem auto; padding: 2rem; position: relative; }
+.receipt-head { display: flex; gap: 1rem; align-items: center; border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 1.25rem; }
+.receipt-head img { width: 72px; height: 72px; object-fit: contain; }
+.receipt-head h2 { margin: 0; }
+.receipt-head p { margin: 0; font-size: .85rem; color: var(--muted); }
+.receipt dl { display: grid; grid-template-columns: 160px 1fr; gap: .5rem 1rem; margin: 0 0 1.25rem; }
+.receipt dt { color: var(--muted); font-weight: 600; }
+.receipt dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.receipt .amount { font-family: var(--display); font-size: 2rem; font-weight: 800; color: var(--ink); }
+.receipt .thought { border-left: 4px solid var(--gold); padding: .5rem 1rem; margin: 1.25rem 0; font-style: italic; background: #fffaf0; }
+.receipt .stamp { position: absolute; right: 1.5rem; top: 5.5rem; transform: rotate(-8deg); border: 3px solid; padding: .15rem .8rem; border-radius: 8px; font-family: var(--display); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.receipt .stamp.approved { color: var(--ok); }
+.receipt .stamp.pending { color: var(--warn); }
+.receipt .stamp.rejected { color: var(--danger); }
+.receipt .sign { display: flex; justify-content: space-between; margin-top: 2.5rem; font-size: .85rem; color: var(--muted); gap: 1rem; flex-wrap: wrap; }
+.receipt .sign div { border-top: 1px solid var(--muted); padding-top: .3rem; min-width: 160px; text-align: center; }
+@media (max-width: 560px) { .receipt dl { grid-template-columns: 1fr; gap: 0; } .receipt dt { margin-top: .6rem; } .receipt .stamp { position: static; display: inline-block; transform: none; margin-bottom: 1rem; } }
+
+/* footer & toast */
+.site-footer { background: #0a2c2b; color: #bcd3cf; margin: 3rem calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0; padding: 2.5rem max(16px, env(safe-area-inset-right, 0px)) 2rem max(16px, env(safe-area-inset-left, 0px)); font-size: .92rem; }
+.site-footer .in { max-width: 1120px; margin: 0 auto; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.site-footer h3 { color: #fff; font-size: 1rem; }
+.site-footer a { color: #e6f0ee; }
+.site-footer p { margin: 0 0 .4rem; overflow-wrap: anywhere; }
+.toast { position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: .75rem 1.25rem; border-radius: 999px; z-index: 50; font-weight: 600; max-width: calc(100vw - 32px); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .site-header, .site-footer, .no-print, .toast { display: none !important; }
+  .receipt { border-width: 2px; margin: 0 auto; box-shadow: none; }
+  .section { padding: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header class="site-header" id="siteHeader"></header>
+<main id="app" tabindex="-1"><p class="loading">Loading…</p></main>
+<footer class="site-footer" id="siteFooter"></footer>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+'use strict';
+(() => {
+  /* ================= state & helpers ================= */
+  const S = { pub: null, me: null };
+  const D = { dept: null, plan: null };
+  const AF = { status: '', kind: '', q: '' };
+  const $ = (s, el = document) => el.querySelector(s);
+  const appEl = $('#app');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const inr = n => '₹' + Number(n || 0).toLocaleString('en-IN');
+  const fmtDate = t => new Date(t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const fmtDateTime = t => new Date(t).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const app = html => { appEl.innerHTML = html; window.scrollTo(0, 0); };
+
+  async function api(path, opts = {}) {
+    const init = { method: opts.method || 'GET', credentials: 'same-origin', headers: {} };
+    if (opts.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.body); }
+    let r;
+    try { r = await fetch('/api' + path, init); } catch { throw new Error('Cannot reach the server. Check your internet connection.'); }
+    let data = {};
+    try { data = await r.json(); } catch { /* ignore */ }
+    if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+    return data;
+  }
+  let toastTimer;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+  const alertBox = (msg, kind = 'err') => `<div class="alert ${kind}" role="alert">${esc(msg)}</div>`;
+
+  function words(n) {
+    n = Math.floor(n);
+    if (n === 0) return 'Zero';
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const two = x => (x < 20 ? ones[x] : tens[Math.floor(x / 10)] + (x % 10 ? ' ' + ones[x % 10] : ''));
+    const three = x => { let s = ''; if (x >= 100) { s = ones[Math.floor(x / 100)] + ' Hundred'; x %= 100; if (x) s += ' '; } return s + (x ? two(x) : ''); };
+    const out = [];
+    const cr = Math.floor(n / 1e7); n %= 1e7;
+    const lk = Math.floor(n / 1e5); n %= 1e5;
+    const th = Math.floor(n / 1e3); n %= 1e3;
+    if (cr) out.push(three(cr) + ' Crore');
+    if (lk) out.push(two(lk) + ' Lakh');
+    if (th) out.push(two(th) + ' Thousand');
+    if (n) out.push(three(n));
+    return out.join(' ');
+  }
+
+  /* resize an uploaded image in the browser so the database stays small */
+  function readImage(file, maxPx, mime) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\/(png|jpeg|webp|gif)$/.test(file.type)) return reject(new Error('Please choose a PNG, JPG or WebP image.'));
+      const fr = new FileReader();
+      fr.onerror = () => reject(new Error('Could not read that file.'));
+      fr.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('That image could not be opened.'));
+        img.onload = () => {
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          const ctx = c.getContext('2d');
+          if (mime === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); }
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL(mime, 0.88));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  /* ================= icons & art ================= */
+  const svg = (inner, extra = '') => `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${inner}</svg>`;
+  const ICONS = {
+    cow: svg('<path d="M12 14c-4 0-7-2-8-6 4-1 8 0 10 3M36 14c4 0 7-2 8-6-4-1-8 0-10 3"/><path d="M12 14c0-3 5-5 12-5s12 2 12 5v10c0 8-5 15-12 15s-12-7-12-15z"/><ellipse cx="24" cy="31" rx="7" ry="5"/><circle cx="19" cy="21" r="1.2" fill="currentColor"/><circle cx="29" cy="21" r="1.2" fill="currentColor"/><circle cx="21.5" cy="31" r=".9" fill="currentColor"/><circle cx="26.5" cy="31" r=".9" fill="currentColor"/>'),
+    elder: svg('<path d="M6 22 24 7l18 15"/><path d="M11 19v20h26V19"/><path d="M24 34s-7-4.5-7-9.2a4 4 0 0 1 7-2.4 4 4 0 0 1 7 2.4C31 29.5 24 34 24 34z"/>'),
+    hospital: svg('<rect x="7" y="7" width="34" height="34" rx="7"/><path d="M24 15v18M15 24h18"/>'),
+    food: svg('<path d="M6 24h36a18 14 0 0 1-36 0z"/><path d="M18 15c0-3 3-3 3-7M27 15c0-3 3-3 3-7"/>'),
+    book: svg('<path d="M24 12c-4-3-10-4-17-3v28c7-1 13 0 17 3 4-3 10-4 17-3V9c-7-1-13 0-17 3z"/><path d="M24 12v28"/>'),
+    tree: svg('<path d="M24 43V29"/><path d="M13 29a8 8 0 0 1 2-15 9 9 0 0 1 18 0 8 8 0 0 1 2 15z"/><path d="M24 36l-5-4M24 33l5-4"/>'),
+    relief: svg('<path d="M6 26a18 16 0 0 1 36 0z"/><path d="M24 26v12a4 4 0 0 1-8 0"/>'),
+    heart: svg('<path d="M24 41S6 30 6 18a9 9 0 0 1 18-3 9 9 0 0 1 18 3c0 12-18 23-18 23z"/>'),
+    check: svg('<path d="M10 25l9 9 19-20"/>')
+  };
+  const ICON_KEYS = ['cow', 'elder', 'hospital', 'food', 'book', 'tree', 'relief', 'heart'];
+  const deptIcon = d => ICONS[d.icon] || ICONS.heart;
+  const HERO_ART = '<svg viewBox="0 0 480 360" role="img" aria-label="Sun rising over green fields with a small home and a tree"><rect width="480" height="360" fill="#1c5f5c"/><circle cx="330" cy="130" r="86" fill="#f4a300" opacity=".18"/><circle cx="330" cy="130" r="64" fill="#f4a300"/><path d="M0 250C90 200 170 210 250 240S410 270 480 220V360H0z" fill="#2f7d4f"/><path d="M0 295C110 255 220 290 320 280S440 300 480 285V360H0z" fill="#256c42"/><g transform="translate(70 190)"><path d="M0 40 40 6l40 34v46H0z" fill="#f6f7f3"/><rect x="32" y="52" width="16" height="34" fill="#0e3b3a"/><path d="M-6 42 40 2l46 40" fill="none" stroke="#0e3b3a" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/></g><g transform="translate(385 205)"><rect x="-4" y="40" width="8" height="46" fill="#0e3b3a"/><circle cx="0" cy="26" r="30" fill="#2f9a5f"/><circle cx="-18" cy="42" r="18" fill="#2f9a5f"/><circle cx="18" cy="42" r="18" fill="#2f9a5f"/></g><path d="M116 61c0-9 7-15 14-15 5 0 9 3 11 7 2-4 6-7 11-7 7 0 14 6 14 15 0 17-25 30-25 30s-25-13-25-30z" fill="#fff" opacity=".95"/></svg>';
+
+  /* ================= layout ================= */
+  function currentPage() { return (location.hash.replace(/^#\/?/, '').split('/')[0] || 'home'); }
+  function renderHeader() {
+    const s = S.pub.settings, me = S.me, p = currentPage();
+    const logo = s.logo ? `<img src="${esc(s.logo)}" alt="">` : `<span class="brand-mark">${ICONS.heart}</span>`;
+    const link = (page, label) => `<a href="#/${page}" class="${p === page ? 'on' : ''}">${label}</a>`;
+    $('#siteHeader').innerHTML = `<nav class="nav" aria-label="Main">
+      <a class="brand" href="#/">${logo}<span>${esc(s.org_name)}</span></a>
+      <button class="nav-toggle" type="button" data-action="nav-toggle" aria-expanded="false" aria-controls="navLinks">Menu</button>
+      <div class="nav-links" id="navLinks">
+        ${link('donate', 'Donate')}${link('membership', 'Membership')}${link('donors', 'Our Donors')}${link('about', 'About')}
+        ${me ? link('dashboard', 'My Account') : link('login', 'Log in')}
+        ${me && me.role === 'admin' ? link('admin', 'Admin') : ''}
+        ${me ? '<button class="linklike" type="button" data-action="logout">Log out</button>' : '<a class="btn btn-gold btn-sm" href="#/register">Register</a>'}
+      </div></nav>`;
+    document.title = s.org_name;
+  }
+  function renderFooter() {
+    const s = S.pub.settings;
+    $('#siteFooter').innerHTML = `<div class="in">
+      <div><h3>${esc(s.org_name)}</h3><p>${esc(s.tagline)}</p></div>
+      <div><h3>Contact</h3><p>${esc(s.address)}</p><p>${esc(s.phone)}</p><p>${esc(s.email)}</p></div>
+      <div><h3>Registration</h3><p>${esc(s.reg_info)}</p><p><a href="#/about">About us</a> · <a href="#/donors">Our donors</a></p></div></div>`;
+  }
+
+  /* ================= data loading ================= */
+  async function loadPublic() { S.pub = await api('/public'); }
+  async function loadMe() { S.me = (await api('/me')).user; }
+  function requireLogin() {
+    if (S.me) return true;
+    sessionStorage.setItem('next', location.hash);
+    location.hash = '#/login';
+    toast('Please log in or register first.');
+    return false;
+  }
+
+  /* ================= pages ================= */
+  async function pageHome() {
+    const s = S.pub.settings, st = S.pub.stats;
+    let recent = [];
+    try { recent = (await api('/donors')).recent.slice(0, 6); } catch { /* optional */ }
+    app(`
+      <section class="hero"><div class="hero-in">
+        <div>
+          <p class="eyebrow" style="color:#f4a300">${esc(s.org_name)}</p>
+          <h1>${esc(s.hero_title)}</h1>
+          <p class="lead">${esc(s.hero_text)}</p>
+          <div class="actions"><a class="btn btn-gold" href="#/donate">Donate now</a><a class="btn btn-line" href="#/membership">Become a member</a></div>
+        </div>
+        <div class="hero-art">${HERO_ART}</div>
+      </div></section>
+      <div class="wrap">
+        <div class="stats">
+          <div class="stat"><b>${inr(st.total)}</b><span>Donated so far</span></div>
+          <div class="stat"><b>${Number(st.donors).toLocaleString('en-IN')}</b><span>Generous donors</span></div>
+          <div class="stat"><b>${Number(st.count).toLocaleString('en-IN')}</b><span>Donations received</span></div>
+          <div class="stat"><b>${S.pub.departments.length}</b><span>Causes you can support</span></div>
+        </div>
+        <section class="section">
+          <div class="section-head"><p class="eyebrow">Where your money goes</p><h2>Pick a cause close to your heart</h2><p class="muted">Start from just ₹20. Every donation is recorded with your name and comes with a receipt.</p></div>
+          <div class="grid">${S.pub.departments.map(causeCard).join('')}</div>
+        </section>
+        <section class="section" style="padding-top:0">
+          <div class="section-head"><p class="eyebrow">How it works</p><h2>Three simple steps</h2></div>
+          <div class="steps">
+            <div class="step"><h3>Choose and pay</h3><p class="muted">Pick a cause and amount, then scan our UPI QR code with any payment app.</p></div>
+            <div class="step"><h3>Share the reference</h3><p class="muted">Enter the UTR number from your payment so our team can match it.</p></div>
+            <div class="step"><h3>Get your receipt</h3><p class="muted">Download a receipt with your name, cause and amount any time from your account.</p></div>
+          </div>
+        </section>
+      </div>
+      <section class="quote-band"><blockquote>“${esc(quoteOfDay())}”</blockquote></section>
+      <div class="wrap">
+        ${recent.length ? `<section class="section"><div class="section-head"><p class="eyebrow">Thank you</p><h2>Recent donors</h2></div>
+          <div class="table-wrap"><table><thead><tr><th>Donor</th><th>Cause</th><th class="num">Amount</th></tr></thead><tbody>
+          ${recent.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.label)}</td><td class="num">${inr(r.amount)}</td></tr>`).join('')}
+          </tbody></table></div><p style="margin-top:1rem"><a href="#/donors">See all donors</a></p></section>` : ''}
+      </div>`);
+  }
+  const QUOTES = ['No one has ever become poor by giving.', 'What we give today becomes someone\'s tomorrow.', 'Real wealth is the number of lives you have made lighter.', 'Small acts, multiplied by millions of people, can transform the world.', 'Be the reason someone believes in goodness today.'];
+  const quoteOfDay = () => QUOTES[new Date().getDate() % QUOTES.length];
+
+  function causeCard(d) {
+    const top = d.image ? `<div class="cause-top" style="background-image:url('${esc(d.image)}')" role="img" aria-label="${esc(d.name)}"></div>` : `<div class="cause-top">${deptIcon(d)}</div>`;
+    return `<a class="card cause" href="#/donate/${d.id}">${top}<div class="cause-body"><h3>${esc(d.name)}</h3><p>${esc(d.description)}</p><div class="cause-foot"><span>From ${inr(d.min_amount)}</span><span>Donate →</span></div></div></a>`;
+  }
+
+  function qrCard({ amountText, submitLabel, withNote }) {
+    const s = S.pub.settings;
+    const qr = s.qr_image
+      ? `<div class="qr-box"><img src="${esc(s.qr_image)}" alt="UPI QR code for ${esc(s.org_name)}"></div>`
+      : '<div class="qr-box"><div class="qr-empty">The payment QR code has not been added yet. Please contact us to donate.</div></div>';
+    return `<aside class="card qr-card">
+      <h3>3. Scan and pay</h3>
+      <p style="font-size:1.1rem">Pay <b id="payAmt">${amountText}</b></p>
+      ${qr}
+      ${s.upi_id ? `<div class="upi">UPI ID <code>${esc(s.upi_id)}</code><button type="button" class="btn btn-line btn-sm" data-action="copy" data-v="${esc(s.upi_id)}">Copy</button></div>` : ''}
+      ${s.payee_name ? `<p class="small muted" style="margin-top:.5rem">Payee: ${esc(s.payee_name)}</p>` : ''}
+      <p class="small muted" style="margin-top:.75rem">${esc(s.pay_note)}</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:1.25rem 0">
+      <div style="text-align:left">
+        <h3>4. Confirm your payment</h3>
+        <div class="field"><label for="utr">UPI reference number (UTR)</label>
+          <input id="utr" name="utr" autocomplete="off" inputmode="text" maxlength="30" placeholder="e.g. 412345678901" required>
+          <p class="hint">Find it in your payment app under transaction details. It is usually 12 digits.</p></div>
+        ${withNote ? `<div class="field"><label for="message">Message (optional)</label><textarea id="message" name="message" maxlength="300" placeholder="A prayer, a dedication or a note for the team"></textarea></div>
+        <label class="check field"><input type="checkbox" name="anonymous"><span>Hide my name on the public donors list</span></label>` : ''}
+        <div id="formErr"></div>
+        <button class="btn btn-gold" style="width:100%" type="submit">${submitLabel}</button>
+      </div></aside>`;
+  }
+
+  /* ---- donate ---- */
+  const deptById = id => S.pub.departments.find(d => d.id === Number(id));
+  function pageDonate(arg) {
+    if (!requireLogin()) return;
+    const deps = S.pub.departments;
+    if (!deps.length) return app('<section class="section wrap"><div class="card">No causes are open for donation right now. Please check back soon.</div></section>');
+    D.dept = (deptById(arg) && deptById(arg).id) || (deptById(D.dept) && D.dept) || deps[0].id;
+    app(`<section class="section wrap">
+      <p class="eyebrow">Donate</p><h1>Make a donation</h1>
+      <p class="muted" style="max-width:60ch">Choose a cause, pick an amount, scan the QR code, then enter your payment reference number. Donations start at ₹20.</p>
+      <form data-form="donate" novalidate><div class="donate-grid">
+        <div class="card">
+          <h3>1. Choose a cause</h3>
+          <div class="pick">${deps.map(d => `<label><input type="radio" name="dept" value="${d.id}" data-change="pick-dept" ${d.id === D.dept ? 'checked' : ''}><span class="opt">${deptIcon(d)}<span>${esc(d.name)}</span></span></label>`).join('')}</div>
+          <p class="hint" id="deptDesc"></p>
+          <h3 style="margin-top:1.5rem">2. Choose an amount</h3>
+          <div id="amountBox"></div>
+        </div>
+        ${qrCard({ amountText: '₹ —', submitLabel: 'I have paid, submit my donation', withNote: true })}
+      </div></form></section>`);
+    renderAmount();
+  }
+  function renderAmount() {
+    const d = deptById(D.dept); if (!d) return;
+    $('#deptDesc').textContent = d.description;
+    $('#amountBox').innerHTML = `<div class="chips">${d.presets.map(v => `<button type="button" class="chip" data-action="chip" data-v="${v}">${inr(v)}</button>`).join('')}</div>
+      <label for="amount">Or enter your own amount (₹)</label>
+      <input id="amount" name="amount" type="number" inputmode="numeric" min="${d.min_amount}" step="1" placeholder="Minimum ${inr(d.min_amount)}" data-input="amount">`;
+    updateAmount();
+  }
+  function updateAmount() {
+    const inp = $('#amount'); if (!inp) return;
+    const v = Math.floor(Number(inp.value));
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', Number(c.dataset.v) === v));
+    const pay = $('#payAmt'); if (pay) pay.textContent = v > 0 ? inr(v) : '₹ —';
+  }
+
+  async function submitPayment(form, kind) {
+    const err = $('#formErr', form), btn = $('button[type=submit]', form);
+    err.innerHTML = '';
+    const fd = new FormData(form);
+    const body = { kind, utr: String(fd.get('utr') || '').trim(), message: String(fd.get('message') || ''), anonymous: fd.get('anonymous') === 'on' };
+    if (kind === 'donation') {
+      const d = deptById(D.dept), amt = Number(fd.get('amount'));
+      body.department_id = D.dept; body.amount = amt;
+      if (!Number.isInteger(amt) || amt < d.min_amount) { err.innerHTML = alertBox(`Please enter a whole amount of at least ${inr(d.min_amount)}.`); return; }
+    } else body.plan_id = D.plan;
+    if (!/^[A-Za-z0-9]{6,30}$/.test(body.utr)) { err.innerHTML = alertBox('Please enter the UPI reference number (UTR) from your payment. Letters and digits only.'); return; }
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      const r = await api('/pay', { method: 'POST', body });
+      S.me = r.user; renderHeader();
+      await loadPublic();
+      pageThanks(r.payment);
+    } catch (e) {
+      err.innerHTML = alertBox(e.message);
+      btn.disabled = false; btn.textContent = kind === 'donation' ? 'I have paid, submit my donation' : 'I have paid, activate my membership';
+    }
+  }
+
+  function pageThanks(p) {
+    const first = esc((S.me && S.me.name || '').split(' ')[0]);
+    const isDon = p.kind === 'donation';
+    const status = p.status === 'approved'
+      ? 'Your payment is confirmed.'
+      : 'Our team will check your payment shortly. Your receipt is ready now and will show “Verified” once we confirm it.';
+    app(`<section class="section wrap"><div class="thanks">
+      <div class="badge">${ICONS.check}</div>
+      <h1>Thank you, ${first}!</h1>
+      <p style="font-size:1.15rem">${isDon ? `Your donation of <b>${inr(p.amount)}</b> for <b>${esc(p.label)}</b> has been received.` : `Welcome to the family. Your <b>${esc(p.label)}</b> is received for <b>${inr(p.amount)}</b>.`}</p>
+      <p class="muted">${status}</p>
+      <blockquote>“${esc(p.quote)}”</blockquote>
+      <p class="muted">Receipt number <b>${esc(p.receipt_no)}</b></p>
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem">
+        <a class="btn btn-gold" href="#/receipt/${p.id}">View and download receipt</a>
+        <a class="btn btn-line" href="#/donate">Donate again</a>
+        <a class="btn btn-line" href="#/dashboard">My account</a>
+      </div></div></section>`);
+  }
+
+  /* ---- membership ---- */
+  function pageMembership(arg) {
+    const plans = S.pub.plans, me = S.me;
+    if (arg) {
+      if (!requireLogin()) return;
+      const p = plans.find(x => x.id === Number(arg));
+      if (!p) { location.hash = '#/membership'; return; }
+      D.plan = p.id;
+      return app(`<section class="section wrap"><p class="eyebrow">Membership</p><h1>Join as ${esc(p.name)}</h1>
+        <form data-form="member" novalidate><div class="donate-grid">
+          <div class="card"><h3>${esc(p.name)}</h3><p class="price" style="font-family:var(--display);font-size:2.4rem;font-weight:800;color:var(--ink);margin:0">${inr(p.price)}</p>
+            <p class="muted">${durationText(p.months)}</p>
+            <ul>${p.perks.split('\n').filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+            <p class="hint">If you are already a member, the new period is added after your current one ends.</p></div>
+          ${qrCard({ amountText: inr(p.price), submitLabel: 'I have paid, activate my membership', withNote: false })}
+        </div></form></section>`);
+    }
+    const best = plans.length > 2 ? plans[1].id : null;
+    app(`<section class="section wrap">
+      <div class="section-head"><p class="eyebrow">Membership</p><h1>Stand with us every month</h1><p class="muted">Members keep our daily work running: feeding, healing and teaching. Pick the plan that suits you.</p></div>
+      ${me && me.member.active ? `<div class="alert ok">You are an active member until <b>${fmtDate(me.member.ends)}</b>. Thank you! You can also extend your membership below.</div>` : ''}
+      <div class="plans">${plans.map(p => `<div class="card plan ${p.id === best ? 'best' : ''}">
+        ${p.id === best ? '<span class="pill approved" style="align-self:flex-start">Most popular</span>' : ''}
+        <h3>${esc(p.name)}</h3><div class="price">${inr(p.price)}</div><p class="muted small">${durationText(p.months)}</p>
+        <ul>${p.perks.split('\n').filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+        <a class="btn ${p.id === best ? 'btn-gold' : 'btn-ink'}" href="#/membership/${p.id}">Join for ${inr(p.price)}</a></div>`).join('')}</div>
+      ${plans.length ? '' : '<div class="card">Membership plans are not open right now.</div>'}
+    </section>`);
+  }
+  const durationText = m => (m % 12 === 0 ? `${m / 12} year${m > 12 ? 's' : ''}` : `${m} month${m > 1 ? 's' : ''}`) + ' of membership';
+
+  /* ---- donors / about ---- */
+  async function pageDonors() {
+    const d = await api('/donors');
+    app(`<section class="section wrap"><div class="section-head"><p class="eyebrow">With gratitude</p><h1>Our donors</h1><p class="muted">Every name here made someone's day lighter. Donors who chose to stay private appear as “Anonymous donor”.</p></div>
+      <div class="donate-grid" style="grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)">
+        <div><h3>Top donors</h3>${d.top.length ? `<div class="table-wrap"><table><thead><tr><th>Name</th><th class="num">Total</th></tr></thead><tbody>${d.top.map(t => `<tr><td>${esc(t.name)}<div class="muted small">${t.count} donation${t.count > 1 ? 's' : ''}</div></td><td class="num">${inr(t.total)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="card muted">Be the first name on this list.</div>'}</div>
+        <div><h3>Recent donations</h3>${d.recent.length ? `<div class="table-wrap"><table><thead><tr><th>Donor</th><th>Cause</th><th>Date</th><th class="num">Amount</th></tr></thead><tbody>${d.recent.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.label)}</td><td>${fmtDate(r.created_at)}</td><td class="num">${inr(r.amount)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="card muted">No confirmed donations yet.</div>'}</div>
+      </div></section>`);
+  }
+  function pageAbout() {
+    const s = S.pub.settings;
+    app(`<section class="section wrap" style="max-width:820px"><p class="eyebrow">About us</p><h1>${esc(s.org_name)}</h1>
+      ${s.about.split(/\n\s*\n/).map(p => `<p style="font-size:1.05rem">${esc(p)}</p>`).join('')}
+      <div class="card" style="margin-top:1.5rem"><h3>Contact</h3><p>${esc(s.address)}</p><p>Phone: ${esc(s.phone)}<br>Email: ${esc(s.email)}</p><p class="muted small">${esc(s.reg_info)}</p></div></section>`);
+  }
+
+  /* ---- auth ---- */
+  function authPage(mode) {
+    if (S.me) { location.hash = '#/dashboard'; return; }
+    const reg = mode === 'register';
+    app(`<section class="section wrap" style="max-width:520px"><div class="card">
+      <h1 style="font-size:2rem">${reg ? 'Create your account' : 'Welcome back'}</h1>
+      <p class="muted">${reg ? 'Registered donors get receipts, a donation history and can become members.' : 'Log in to donate, see your history and download receipts.'}</p>
+      <form data-form="${mode}" novalidate>
+        ${reg ? '<div class="field"><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required maxlength="80"><p class="hint">This name is printed on your receipt and shown in our donors list.</p></div>' : ''}
+        <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+        ${reg ? '<div class="row"><div class="field"><label for="phone">Phone (optional)</label><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="25"></div><div class="field"><label for="country">Country</label><input id="country" name="country" autocomplete="country-name" maxlength="60" placeholder="India"></div></div>' : ''}
+        <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" required minlength="8">${reg ? '<p class="hint">At least 8 characters.</p>' : ''}</div>
+        <div id="formErr"></div>
+        <button class="btn btn-gold" style="width:100%" type="submit">${reg ? 'Register' : 'Log in'}</button>
+      </form>
+      <p class="muted" style="margin:1rem 0 0">${reg ? 'Already have an account? <a href="#/login">Log in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p>
+    </div></section>`);
+  }
+  async function submitAuth(form, mode) {
+    const err = $('#formErr', form), btn = $('button[type=submit]', form);
+    err.innerHTML = '';
+    const body = Object.fromEntries(new FormData(form));
+    btn.disabled = true;
+    try {
+      const r = await api('/' + mode, { method: 'POST', body });
+      S.me = r.user; renderHeader();
+      const next = sessionStorage.getItem('next'); sessionStorage.removeItem('next');
+      toast(mode === 'register' ? 'Account created. Welcome!' : 'Logged in.');
+      location.hash = next && next !== '#/login' && next !== '#/register' ? next : '#/dashboard';
+    } catch (e) { err.innerHTML = alertBox(e.message); btn.disabled = false; }
+  }
+
+  /* ---- dashboard ---- */
+  const statusPill = s => `<span class="pill ${s}">${s === 'approved' ? 'Verified' : s === 'pending' ? 'Pending' : 'Rejected'}</span>`;
+  async function pageDashboard() {
+    if (!requireLogin()) return;
+    const { payments } = await api('/my/payments');
+    const me = S.me;
+    const total = payments.filter(p => p.kind === 'donation' && p.status === 'approved').reduce((a, p) => a + p.amount, 0);
+    app(`<section class="section wrap">
+      <p class="eyebrow">My account</p><h1>Hello, ${esc(me.name.split(' ')[0])}</h1>
+      <div class="stats" style="margin-top:1.25rem">
+        <div class="stat"><b>${inr(total)}</b><span>Your confirmed donations</span></div>
+        <div class="stat"><b>${payments.length}</b><span>Payments submitted</span></div>
+        <div class="stat"><b>${me.member.active ? 'Active' : 'Not a member'}</b><span>${me.member.active ? 'Until ' + fmtDate(me.member.ends) : '<a href="#/membership">Join from ₹' + (S.pub.plans[0] ? S.pub.plans[0].price : 299) + '</a>'}</span></div>
+      </div>
+      <h2 style="margin-top:2.5rem">My donations and receipts</h2>
+      ${payments.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>For</th><th class="num">Amount</th><th>Status</th><th>Receipt</th></tr></thead><tbody>
+        ${payments.map(p => `<tr><td>${fmtDate(p.created_at)}<div class="muted small">${esc(p.receipt_no)}</div></td><td>${esc(p.label)}</td><td class="num">${inr(p.amount)}</td><td>${statusPill(p.status)}</td><td><a class="btn btn-line btn-sm" href="#/receipt/${p.id}">Download</a></td></tr>`).join('')}
+        </tbody></table></div>` : '<div class="card muted">You have not donated yet. <a href="#/donate">Make your first donation</a>.</div>'}
+      <h2 style="margin-top:2.5rem">My details</h2>
+      <div class="card" style="max-width:640px"><form data-form="profile" novalidate>
+        <div class="field"><label for="pname">Full name (printed on receipts)</label><input id="pname" name="name" value="${esc(me.name)}" required maxlength="80"></div>
+        <div class="row"><div class="field"><label for="pphone">Phone</label><input id="pphone" name="phone" value="${esc(me.phone)}" maxlength="25"></div><div class="field"><label for="pcountry">Country</label><input id="pcountry" name="country" value="${esc(me.country)}" maxlength="60"></div></div>
+        <details style="margin-bottom:1rem"><summary style="cursor:pointer;font-weight:600">Change password</summary>
+          <div class="row" style="margin-top:.75rem"><div class="field"><label for="oldpw">Current password</label><input id="oldpw" name="old_password" type="password" autocomplete="current-password"></div><div class="field"><label for="newpw">New password</label><input id="newpw" name="new_password" type="password" autocomplete="new-password" minlength="8"></div></div></details>
+        <div id="formErr"></div><button class="btn btn-ink" type="submit">Save changes</button>
+      </form></div></section>`);
+  }
+
+  /* ---- receipt ---- */
+  async function pageReceipt(id) {
+    if (!requireLogin()) return;
+    let p;
+    try { p = (await api('/payments/' + Number(id))).payment; } catch (e) { return app(`<section class="section wrap">${alertBox(e.message)}<a href="#/dashboard">Back to my account</a></section>`); }
+    const s = S.pub.settings, isDon = p.kind === 'donation';
+    const stampText = p.status === 'approved' ? 'Verified' : p.status === 'pending' ? 'Verification pending' : 'Rejected';
+    app(`<section class="section wrap">
+      <div class="no-print" style="max-width:760px;margin:0 auto">
+        ${p.status === 'pending' ? '<div class="alert info">This receipt is marked “Verification pending”. It will read “Verified” once our team confirms your payment. Open this page again later to download the final copy.</div>' : ''}
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-gold" type="button" data-action="print">Download receipt (PDF)</button>
+          <a class="btn btn-line" href="#/dashboard">Back to my account</a>
+        </div>
+        <p class="hint">In the window that opens, choose “Save as PDF” as the printer to download it.</p>
+      </div>
+      <article class="receipt" aria-label="Receipt ${esc(p.receipt_no)}">
+        <div class="receipt-head">${s.logo ? `<img src="${esc(s.logo)}" alt="">` : ''}<div><h2>${esc(s.org_name)}</h2><p>${esc(s.address)} · ${esc(s.phone)} · ${esc(s.email)}</p><p>${esc(s.reg_info)}</p></div></div>
+        <span class="stamp ${p.status}">${stampText}</span>
+        <h3 style="font-size:1.4rem">${isDon ? 'Donation receipt' : 'Membership receipt'}</h3>
+        <dl>
+          <dt>Receipt no.</dt><dd>${esc(p.receipt_no)}</dd>
+          <dt>Date</dt><dd>${fmtDateTime(p.created_at)}</dd>
+          <dt>Received from</dt><dd>${esc(p.donor_name)}<br><span class="muted small">${esc(p.donor_email)}</span></dd>
+          <dt>${isDon ? 'Donated to' : 'Plan'}</dt><dd>${esc(p.label)}</dd>
+          <dt>Amount</dt><dd><span class="amount">${inr(p.amount)}</span><br><span class="muted small">Rupees ${words(p.amount)} only</span></dd>
+          <dt>Payment mode</dt><dd>UPI, reference ${esc(p.utr)}</dd>
+          ${!isDon && p.status === 'approved' ? `<dt>Valid</dt><dd>${fmtDate(p.starts_at)} to ${fmtDate(p.ends_at)}</dd>` : ''}
+          ${p.message ? `<dt>Your note</dt><dd>${esc(p.message)}</dd>` : ''}
+        </dl>
+        <div class="thought">“${esc(p.quote)}”</div>
+        <p>Thank you, ${esc(p.donor_name.split(' ')[0])}. Your kindness reaches people who need it most.</p>
+        <div class="sign"><span>This is a computer generated receipt.</span><div>Authorised signatory</div></div>
+      </article></section>`);
+  }
+
+  /* ---- admin ---- */
+  const ADMIN_TABS = [['overview', 'Overview'], ['payments', 'Payments'], ['causes', 'Causes'], ['plans', 'Membership plans'], ['users', 'Users'], ['settings', 'Settings and QR']];
+  async function pageAdmin(tab = 'overview') {
+    if (!requireLogin()) return;
+    if (S.me.role !== 'admin') return app('<section class="section wrap">' + alertBox('This area is for administrators only.') + '</section>');
+    if (!ADMIN_TABS.some(t => t[0] === tab)) tab = 'overview';
+    const shell = inner => app(`<section class="section wrap"><p class="eyebrow">Admin</p><h1 style="font-size:2rem">Control panel</h1>
+      <nav class="tabs" aria-label="Admin sections">${ADMIN_TABS.map(([k, l]) => `<a href="#/admin/${k}" class="${k === tab ? 'on' : ''}">${l}</a>`).join('')}</nav><div id="adminBody">${inner}</div></section>`);
+    try {
+      if (tab === 'overview') {
+        const a = await api('/admin/summary');
+        const max = Math.max(1, ...a.daily.map(d => d.total)), maxC = Math.max(1, ...a.byCause.map(c => c.total));
+        shell(`<div class="stats" style="margin-top:0">
+          <div class="stat"><b>${inr(a.total.s)}</b><span>Total confirmed (${a.total.c})</span></div>
+          <div class="stat"><b>${inr(a.donations.s)}</b><span>Donations (${a.donations.c})</span></div>
+          <div class="stat"><b>${inr(a.memberships.s)}</b><span>Memberships (${a.memberships.c})</span></div>
+          <div class="stat"><b>${a.pending.c}</b><span>${a.pending.c ? `<a href="#/admin/payments" data-action="filter-pending">Waiting for approval (${inr(a.pending.s)})</a>` : 'Nothing waiting'}</span></div>
+          <div class="stat"><b>${a.users}</b><span>Registered users</span></div>
+          <div class="stat"><b>${a.activeMembers}</b><span>Active members</span></div></div>
+          <div class="row" style="margin-top:1.5rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+            <div class="card"><h3>Donations by cause</h3>${a.byCause.length ? `<div class="bars">${a.byCause.map(c => `<div class="bar-row"><span>${esc(c.label)}</span><div class="bar-track"><div class="bar-fill" style="width:${(c.total / maxC * 100).toFixed(1)}%"></div></div><b>${inr(c.total)}</b></div>`).join('')}</div>` : '<p class="muted">No confirmed donations yet.</p>'}</div>
+            <div class="card"><h3>Last 14 days (confirmed)</h3><div class="daily">${a.daily.map(d => `<div class="col" title="${esc(d.day)}: ${inr(d.total)}"><i style="height:${(d.total / max * 100).toFixed(1)}%"></i><span>${d.day.slice(8)}</span></div>`).join('')}</div><p class="muted small">Bar height shows the amount for each day. Peak day: ${inr(max === 1 && !a.daily.some(d => d.total) ? 0 : max)}.</p></div>
+          </div>`);
+      } else if (tab === 'payments') {
+        const qs = new URLSearchParams(Object.fromEntries(Object.entries(AF).filter(([, v]) => v))).toString();
+        const { payments } = await api('/admin/payments' + (qs ? '?' + qs : ''));
+        shell(`<form class="toolbar" data-form="admin-filter">
+          <div><label for="fs">Status</label><select id="fs" name="status"><option value="">All</option>${['pending', 'approved', 'rejected'].map(v => `<option value="${v}" ${AF.status === v ? 'selected' : ''}>${v[0].toUpperCase() + v.slice(1)}</option>`).join('')}</select></div>
+          <div><label for="fk">Type</label><select id="fk" name="kind"><option value="">All</option><option value="donation" ${AF.kind === 'donation' ? 'selected' : ''}>Donations</option><option value="membership" ${AF.kind === 'membership' ? 'selected' : ''}>Memberships</option></select></div>
+          <div style="flex:2 1 220px"><label for="fq">Search name, email, UTR or receipt</label><input id="fq" name="q" value="${esc(AF.q)}"></div>
+          <div style="flex:0 0 auto;display:flex;gap:.5rem"><button class="btn btn-ink btn-sm" type="submit">Filter</button><a class="btn btn-line btn-sm" href="/api/admin/export.csv">Download CSV</a></div></form>
+          ${payments.length ? `<div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Donor</th><th>For</th><th class="num">Amount</th><th>UTR</th><th>Status</th><th>Action</th></tr></thead><tbody>
+          ${payments.map(p => `<tr><td>${esc(p.receipt_no)}<div class="muted small">${fmtDateTime(p.created_at)}</div></td>
+            <td>${esc(p.donor_name)}${p.anonymous ? ' <span class="pill pending">hidden</span>' : ''}<div class="muted small">${esc(p.donor_email)}</div>${p.message ? `<div class="small">“${esc(p.message)}”</div>` : ''}</td>
+            <td>${esc(p.label)}</td><td class="num">${inr(p.amount)}</td><td>${esc(p.utr)}</td><td>${statusPill(p.status)}</td>
+            <td><div class="actions-cell">${p.status !== 'approved' ? `<button class="btn btn-ink btn-sm" data-action="pay-status" data-id="${p.id}" data-s="approved">Approve</button>` : ''}${p.status !== 'rejected' ? `<button class="btn btn-danger btn-sm" data-action="pay-status" data-id="${p.id}" data-s="rejected">Reject</button>` : ''}<a class="btn btn-line btn-sm" href="#/receipt/${p.id}">Receipt</a></div></td></tr>`).join('')}
+          </tbody></table></div><p class="muted small">Check each UTR in your bank or PhonePe app before approving. Showing up to 500 latest.</p>` : '<div class="card muted">No payments match.</div>'}`);
+      } else if (tab === 'causes') {
+        const { departments } = await api('/admin/departments');
+        shell(`<p class="muted">Add, rename, hide or remove donation causes. Presets are the quick amount buttons donors see.</p>
+          <details class="card edit-card" open><summary>Add a new cause</summary>${deptForm(null)}</details>
+          ${departments.map(d => `<details class="card edit-card"><summary><span>${esc(d.name)} ${d.active ? '' : '<span class="pill rejected">hidden</span>'}</span><span class="muted small">from ${inr(d.min_amount)}</span></summary>${deptForm(d)}</details>`).join('')}`);
+      } else if (tab === 'plans') {
+        const { plans } = await api('/admin/plans');
+        shell(`<p class="muted">Set the price and duration of each membership plan. Prices are in rupees.</p>
+          <details class="card edit-card" open><summary>Add a new plan</summary>${planForm(null)}</details>
+          ${plans.map(p => `<details class="card edit-card"><summary><span>${esc(p.name)} ${p.active ? '' : '<span class="pill rejected">hidden</span>'}</span><span class="muted small">${inr(p.price)} · ${p.months} month${p.months > 1 ? 's' : ''}</span></summary>${planForm(p)}</details>`).join('')}`);
+      } else if (tab === 'users') {
+        const { users } = await api('/admin/users');
+        shell(`<div class="table-wrap"><table><thead><tr><th>Name</th><th>Contact</th><th class="num">Donated</th><th>Member</th><th>Role</th><th>Reset password</th></tr></thead><tbody>
+          ${users.map(u => `<tr><td>${esc(u.name)}<div class="muted small">Joined ${fmtDate(u.created_at)}</div></td><td>${esc(u.email)}<div class="muted small">${esc(u.phone || '')} ${esc(u.country || '')}</div></td><td class="num">${inr(u.donated)}</td>
+            <td>${u.member.active ? 'Until ' + fmtDate(u.member.ends) : '-'}</td>
+            <td>${u.id === S.me.id ? 'Admin (you)' : `<button class="btn btn-line btn-sm" data-action="toggle-role" data-id="${u.id}" data-r="${u.role === 'admin' ? 'user' : 'admin'}">${u.role === 'admin' ? 'Remove admin' : 'Make admin'}</button>`}</td>
+            <td><div class="actions-cell"><input id="pw-${u.id}" style="width:150px;min-height:36px;padding:.3rem .6rem" placeholder="New password" aria-label="New password for ${esc(u.name)}"><button class="btn btn-ink btn-sm" data-action="reset-pw" data-id="${u.id}">Set</button></div></td></tr>`).join('')}
+          </tbody></table></div>`);
+      } else {
+        const s = S.pub.settings;
+        const f = (name, label, type = 'text') => `<div class="field"><label for="s-${name}">${label}</label><input id="s-${name}" name="${name}" value="${esc(s[name])}" ${type === 'text' ? 'maxlength="400"' : ''}></div>`;
+        const ta = (name, label, rows = 3) => `<div class="field"><label for="s-${name}">${label}</label><textarea id="s-${name}" name="${name}" rows="${rows}" maxlength="3000">${esc(s[name])}</textarea></div>`;
+        shell(`<form data-form="settings" novalidate>
+          <div class="row" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+            <div class="card"><h3>Payment QR code</h3><p class="muted small">Upload the PhonePe (or any UPI) QR image. Donors will see exactly this QR on the donate page. Replace it any time.</p>
+              <img class="preview" data-preview="qr_image" alt="Current QR code" ${s.qr_image ? `src="${esc(s.qr_image)}"` : 'hidden'}>
+              <input type="hidden" name="qr_image" value="${esc(s.qr_image)}">
+              <div class="field"><label for="qrfile">Choose QR image</label><input id="qrfile" type="file" accept="image/png,image/jpeg,image/webp" data-change="file" data-target="qr_image" data-max="1000" data-mime="image/png"></div>
+              <button type="button" class="btn btn-line btn-sm" data-action="clear-img" data-target="qr_image">Remove QR</button>
+              ${f('upi_id', 'UPI ID (shown under the QR)')}${f('payee_name', 'Payee name (shown under the QR)')}</div>
+            <div class="card"><h3>Logo</h3><p class="muted small">Shown in the top bar and on receipts. A square PNG works best.</p>
+              <img class="preview" data-preview="logo" alt="Current logo" ${s.logo ? `src="${esc(s.logo)}"` : 'hidden'}>
+              <input type="hidden" name="logo" value="${esc(s.logo)}">
+              <div class="field"><label for="logofile">Choose logo</label><input id="logofile" type="file" accept="image/png,image/jpeg,image/webp" data-change="file" data-target="logo" data-max="400" data-mime="image/png"></div>
+              <button type="button" class="btn btn-line btn-sm" data-action="clear-img" data-target="logo">Remove logo</button></div>
+          </div>
+          <div class="card" style="margin-top:1rem"><h3>Website text</h3>${f('org_name', 'NGO name')}${f('tagline', 'Tagline')}${f('hero_title', 'Home page headline')}${ta('hero_text', 'Home page intro')}${ta('about', 'About us (leave a blank line between paragraphs)', 6)}</div>
+          <div class="card" style="margin-top:1rem"><h3>Contact and registration</h3>${ta('address', 'Address', 2)}${f('phone', 'Phone')}${f('email', 'Email')}${ta('reg_info', 'Registration details printed on receipts (Reg. no., PAN, 80G etc.)', 2)}</div>
+          <div class="card" style="margin-top:1rem"><h3>Payments</h3>${ta('pay_note', 'Instructions shown under the QR code', 3)}
+            <label class="check"><input type="checkbox" name="auto_approve" ${s.auto_approve === '1' ? 'checked' : ''}><span>Approve payments automatically. Leave this off so you can match each UTR with your bank or PhonePe statement before approving.</span></label></div>
+          <div id="formErr" style="margin-top:1rem"></div>
+          <button class="btn btn-gold" type="submit" style="margin-top:.5rem">Save settings</button></form>`);
+      }
+    } catch (e) { shell(alertBox(e.message)); }
+  }
+  function deptForm(d) {
+    const v = d || { name: '', description: '', icon: 'heart', image: '', min_amount: 20, presets: [20, 50, 100, 500, 1000, 5000], active: true, sort: 100 };
+    return `<form data-form="dept" data-id="${d ? d.id : ''}" novalidate>
+      <div class="row"><div class="field"><label>Cause name</label><input name="name" value="${esc(v.name)}" required maxlength="80"></div>
+        <div class="field"><label>Icon</label><select name="icon">${ICON_KEYS.map(k => `<option value="${k}" ${v.icon === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div></div>
+      <div class="field"><label>Short description</label><textarea name="description" maxlength="400">${esc(v.description)}</textarea></div>
+      <div class="row"><div class="field"><label>Minimum amount (₹)</label><input name="min_amount" type="number" min="1" step="1" value="${v.min_amount}"></div>
+        <div class="field"><label>Quick amounts (comma separated)</label><input name="presets" value="${esc(v.presets.join(', '))}"></div>
+        <div class="field"><label>Display order</label><input name="sort" type="number" step="1" value="${v.sort}"></div></div>
+      <div class="field"><label>Photo (optional, replaces the icon on the cause card)</label>
+        <img class="preview" data-preview="image" alt="Cause photo" ${v.image ? `src="${esc(v.image)}"` : 'hidden'}>
+        <input type="hidden" name="image" value="${esc(v.image)}">
+        <input type="file" accept="image/png,image/jpeg,image/webp" data-change="file" data-target="image" data-max="900" data-mime="image/jpeg" aria-label="Choose photo">
+        <button type="button" class="btn btn-line btn-sm" style="margin-top:.5rem" data-action="clear-img" data-target="image">Remove photo</button></div>
+      <label class="check field"><input type="checkbox" name="active" ${v.active ? 'checked' : ''}><span>Show this cause on the website</span></label>
+      <div data-err></div>
+      <div class="actions-cell"><button class="btn btn-ink" type="submit">${d ? 'Save changes' : 'Add cause'}</button>${d ? `<button type="button" class="btn btn-danger" data-action="del-dept" data-id="${d.id}">Delete</button>` : ''}</div></form>`;
+  }
+  function planForm(p) {
+    const v = p || { name: '', months: 1, price: 299, perks: '', active: true, sort: 100 };
+    return `<form data-form="plan" data-id="${p ? p.id : ''}" novalidate>
+      <div class="row"><div class="field"><label>Plan name</label><input name="name" value="${esc(v.name)}" required maxlength="80"></div>
+        <div class="field"><label>Duration (months)</label><input name="months" type="number" min="1" step="1" value="${v.months}"></div>
+        <div class="field"><label>Price (₹)</label><input name="price" type="number" min="1" step="1" value="${v.price}"></div>
+        <div class="field"><label>Display order</label><input name="sort" type="number" step="1" value="${v.sort}"></div></div>
+      <div class="field"><label>Benefits (one per line)</label><textarea name="perks" maxlength="600">${esc(v.perks)}</textarea></div>
+      <label class="check field"><input type="checkbox" name="active" ${v.active ? 'checked' : ''}><span>Show this plan on the website</span></label>
+      <div data-err></div>
+      <div class="actions-cell"><button class="btn btn-ink" type="submit">${p ? 'Save changes' : 'Add plan'}</button>${p ? `<button type="button" class="btn btn-danger" data-action="del-plan" data-id="${p.id}">Delete</button>` : ''}</div></form>`;
+  }
+
+  /* ================= events ================= */
+  const actions = {
+    'nav-toggle': el => { const l = $('#navLinks'); const o = l.classList.toggle('open'); el.setAttribute('aria-expanded', o); },
+    logout: async () => { await api('/logout', { method: 'POST' }); S.me = null; renderHeader(); toast('You are logged out.'); location.hash = '#/'; },
+    chip: el => { $('#amount').value = el.dataset.v; updateAmount(); },
+    copy: async el => { try { await navigator.clipboard.writeText(el.dataset.v); toast('Copied.'); } catch { toast('Copy failed. Please select the text and copy it.'); } },
+    print: () => window.print(),
+    'filter-pending': () => { AF.status = 'pending'; AF.kind = ''; AF.q = ''; },
+    'pay-status': async el => {
+      try { await api('/admin/payments/' + el.dataset.id, { method: 'PATCH', body: { status: el.dataset.s } }); toast(el.dataset.s === 'approved' ? 'Payment approved.' : 'Payment rejected.'); await loadPublic(); route(); }
+      catch (e) { toast(e.message); }
+    },
+    'toggle-role': async el => {
+      try { await api('/admin/users/' + el.dataset.id, { method: 'PATCH', body: { role: el.dataset.r } }); toast('Role updated.'); route(); } catch (e) { toast(e.message); }
+    },
+    'reset-pw': async el => {
+      const inp = $('#pw-' + el.dataset.id);
+      try { await api('/admin/users/' + el.dataset.id, { method: 'PATCH', body: { password: inp.value } }); inp.value = ''; toast('Password changed. The user has been logged out everywhere.'); } catch (e) { toast(e.message); }
+    },
+    'clear-img': el => {
+      const form = el.closest('form'), t = el.dataset.target;
+      form.elements[t].value = '';
+      const pv = $(`[data-preview="${t}"]`, form); if (pv) { pv.hidden = true; pv.removeAttribute('src'); }
+    },
+    'del-dept': async el => {
+      if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = 'Click again to confirm'; return; }
+      try { const r = await api('/admin/departments/' + el.dataset.id, { method: 'DELETE' }); toast(r.hidden ? 'This cause has donations, so it was hidden instead of deleted.' : 'Cause deleted.'); await loadPublic(); route(); } catch (e) { toast(e.message); }
+    },
+    'del-plan': async el => {
+      if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = 'Click again to confirm'; return; }
+      try { const r = await api('/admin/plans/' + el.dataset.id, { method: 'DELETE' }); toast(r.hidden ? 'This plan has members, so it was hidden instead of deleted.' : 'Plan deleted.'); await loadPublic(); route(); } catch (e) { toast(e.message); }
+    }
+  };
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-action]');
+    if (el && actions[el.dataset.action]) actions[el.dataset.action](el, e);
+    if (!e.target.closest('.nav')) { const l = $('#navLinks'); if (l) l.classList.remove('open'); }
+  });
+  document.addEventListener('input', e => { if (e.target.matches('[data-input="amount"]')) updateAmount(); });
+  document.addEventListener('change', async e => {
+    const t = e.target;
+    if (t.matches('[data-change="pick-dept"]')) { D.dept = Number(t.value); renderAmount(); }
+    else if (t.matches('[data-change="file"]')) {
+      const form = t.closest('form'), name = t.dataset.target;
+      try {
+        const url = await readImage(t.files[0], Number(t.dataset.max), t.dataset.mime);
+        form.elements[name].value = url;
+        const pv = $(`[data-preview="${name}"]`, form); if (pv) { pv.src = url; pv.hidden = false; }
+        toast('Image ready. Press Save to apply it.');
+      } catch (er) { toast(er.message); t.value = ''; }
+    }
+  });
+
+  const forms = {
+    donate: f => submitPayment(f, 'donation'),
+    member: f => submitPayment(f, 'membership'),
+    login: f => submitAuth(f, 'login'),
+    register: f => submitAuth(f, 'register'),
+    profile: async f => {
+      const err = $('#formErr', f);
+      try { const r = await api('/me', { method: 'PUT', body: Object.fromEntries(new FormData(f)) }); S.me = r.user; renderHeader(); err.innerHTML = alertBox('Saved.', 'ok'); }
+      catch (e) { err.innerHTML = alertBox(e.message); }
+    },
+    'admin-filter': f => { const d = Object.fromEntries(new FormData(f)); AF.status = d.status; AF.kind = d.kind; AF.q = d.q.trim(); route(); },
+    settings: async f => {
+      const err = $('#formErr', f);
+      const d = Object.fromEntries(new FormData(f));
+      d.auto_approve = f.elements.auto_approve.checked ? '1' : '0';
+      try { await api('/admin/settings', { method: 'PUT', body: d }); await loadPublic(); renderHeader(); renderFooter(); toast('Settings saved.'); route(); }
+      catch (e) { err.innerHTML = alertBox(e.message); window.scrollTo(0, document.body.scrollHeight); }
+    },
+    dept: async f => {
+      const fd = new FormData(f), body = Object.fromEntries(fd); body.active = fd.get('active') === 'on';
+      const id = f.dataset.id, err = $('[data-err]', f);
+      try { await api('/admin/departments' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body }); toast(id ? 'Cause saved.' : 'Cause added.'); await loadPublic(); route(); }
+      catch (e) { err.innerHTML = alertBox(e.message); }
+    },
+    plan: async f => {
+      const fd = new FormData(f), body = Object.fromEntries(fd); body.active = fd.get('active') === 'on';
+      const id = f.dataset.id, err = $('[data-err]', f);
+      try { await api('/admin/plans' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body }); toast(id ? 'Plan saved.' : 'Plan added.'); await loadPublic(); route(); }
+      catch (e) { err.innerHTML = alertBox(e.message); }
+    }
+  };
+  document.addEventListener('submit', e => {
+    const f = e.target.closest('form[data-form]');
+    if (!f) return;
+    e.preventDefault();
+    if (forms[f.dataset.form]) forms[f.dataset.form](f);
+  });
+
+  /* ================= router ================= */
+  async function route() {
+    const [page = '', arg, arg2] = location.hash.replace(/^#\/?/, '').split('/');
+    renderHeader();
+    try {
+      switch (page || 'home') {
+        case 'home': return await pageHome();
+        case 'donate': await loadPublic().catch(() => {}); return pageDonate(arg);
+        case 'membership': await loadPublic().catch(() => {}); return pageMembership(arg);
+        case 'donors': return await pageDonors();
+        case 'about': return pageAbout();
+        case 'login': return authPage('login');
+        case 'register': return authPage('register');
+        case 'dashboard': return await pageDashboard();
+        case 'receipt': return await pageReceipt(arg);
+        case 'admin': return await pageAdmin(arg);
+        default: return app('<section class="section wrap"><h1>Page not found</h1><p><a href="#/">Go to the home page</a></p></section>');
+      }
+    } catch (e) {
+      app(`<section class="section wrap">${alertBox(e.message)}<p><a href="#/">Go to the home page</a></p></section>`);
+    }
+  }
+  window.addEventListener('hashchange', route);
+
+  (async () => {
+    try {
+      await Promise.all([loadPublic(), loadMe()]);
+      renderFooter();
+      await route();
+    } catch (e) {
+      appEl.innerHTML = `<section class="section wrap"><div class="alert err">${esc(e.message)}</div></section>`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "ngo-donation-site",
+  "version": "2.0.0",
+  "private": true,
+  "description": "NGO donation website for Netlify (static site + one serverless function + Supabase). No dependencies.",
+  "engines": { "node": ">=18" }
+}
