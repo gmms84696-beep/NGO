@@ -2,13 +2,6 @@
   publish = "public"
   functions = "netlify/functions"
 
-# Backup route in case the function's own path setting is not applied.
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
-  force = true
-
 [[headers]]
   for = "/*"
   [headers.values]
